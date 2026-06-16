@@ -1,0 +1,3 @@
+[submodule "packages/dotnet"]
+	path = packages/dotnet
+	url = git@github.com:QuetzalSidera/MomoDotnetPackages.git

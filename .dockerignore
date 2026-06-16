@@ -1,0 +1,14 @@
+**/.DS_Store
+**/.git
+**/.idea
+**/bin
+**/obj
+**/TestResults
+
+*.log
+*.nupkg
+*.snupkg
+
+.env
+.env.*
+!.env.example

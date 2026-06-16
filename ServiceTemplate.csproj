@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DefaultItemExcludes>$(DefaultItemExcludes);packages\dotnet\**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,11 +13,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\packages\dotnet\shared\Shared.csproj" />
+      <ProjectReference Include="packages\dotnet\shared\Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
+      <Content Include=".dockerignore">
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>

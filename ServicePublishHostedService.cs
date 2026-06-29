@@ -21,10 +21,10 @@ internal sealed class ServicePublishHostedService(
             Description = ServiceTemplateConfiguration.ReadRequiredString(configuration, "Service:Description"),
             Version = version.ToString(),
             SupportedEventTypes =
-                ServiceTemplateConfiguration.ReadRequiredEnumList<CoreUpStreamCapability>(configuration,
+                ServiceTemplateConfiguration.ReadRequiredUpStreamCapabilityList(configuration,
                     "Service:SupportedEventTypes"),
             RequiredDownStreamCapabilities =
-                ServiceTemplateConfiguration.ReadOptionalEnumList<CoreDownStreamCapability>(configuration,
+                ServiceTemplateConfiguration.ReadOptionalDownStreamCapabilityList(configuration,
                     "Service:RequiredDownStreamCapabilities"),
             RouteHints = commandRegistry.ToRouteHints(),
             ServiceConfigMetadata = ServiceCommandMetadata.FromRegistry(commandRegistry)

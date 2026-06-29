@@ -1,3 +1,5 @@
+using Shared.Contracts.Capabilities;
+
 internal static class ServiceTemplateConfiguration
 {
     public static void ValidateStartup(IConfiguration configuration)
@@ -20,35 +22,51 @@ internal static class ServiceTemplateConfiguration
         return value.Trim();
     }
 
-    public static IReadOnlyList<TEnum> ReadRequiredEnumList<TEnum>(IConfiguration configuration, string key)
-        where TEnum : struct, Enum
+    public static IReadOnlyList<ICoreUpStreamCapabilityConfig> ReadRequiredUpStreamCapabilityList(
+        IConfiguration configuration,
+        string key)
     {
-        ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-
-        var values = configuration.GetSection(key).Get<string[]>();
-        if (values is null)
-            throw new InvalidOperationException($"{key} is required.");
-
-        return values
-            .Select(value => Enum.Parse<TEnum>(value, ignoreCase: false))
+        return ReadRequiredCapabilitySpecs(configuration, key)
+            .Select(spec => CoreCapabilityConfigParser.ParseUpStream(spec.Domain, spec.Dimensions))
             .Distinct()
             .ToList();
     }
 
-    public static IReadOnlyList<TEnum> ReadOptionalEnumList<TEnum>(IConfiguration configuration, string key)
-        where TEnum : struct, Enum
+    public static IReadOnlyList<ICoreDownStreamCapabilityConfig> ReadOptionalDownStreamCapabilityList(
+        IConfiguration configuration,
+        string key)
+    {
+        return ReadOptionalCapabilitySpecs(configuration, key)
+            .Select(spec => CoreCapabilityConfigParser.ParseDownStream(spec.Domain, spec.Dimensions))
+            .Distinct()
+            .ToList();
+    }
+
+    private static IReadOnlyList<ConfiguredCapability> ReadRequiredCapabilitySpecs(IConfiguration configuration,
+        string key)
+    {
+        var values = ReadOptionalCapabilitySpecs(configuration, key);
+        if (values.Count == 0)
+            throw new InvalidOperationException($"{key} is required.");
+
+        return values;
+    }
+
+    private static IReadOnlyList<ConfiguredCapability> ReadOptionalCapabilitySpecs(IConfiguration configuration,
+        string key)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        var values = configuration.GetSection(key).Get<string[]>();
-        if (values is null)
-            return [];
+        return configuration.GetSection(key).Get<ConfiguredCapability[]>()?
+            .Where(value => !string.IsNullOrWhiteSpace(value.Domain))
+            .ToList() ?? [];
+    }
 
-        return values
-            .Select(value => Enum.Parse<TEnum>(value, ignoreCase: false))
-            .Distinct()
-            .ToList();
+    private sealed record ConfiguredCapability
+    {
+        public string Domain { get; init; } = string.Empty;
+
+        public Dictionary<string, string> Dimensions { get; init; } = [];
     }
 }

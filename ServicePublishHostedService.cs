@@ -1,4 +1,5 @@
 using Shared.Contracts.Capabilities;
+using Shared.Contracts.Policies;
 using Shared.GatewaySdk.ServicePublishing;
 
 internal sealed class ServicePublishHostedService(
@@ -20,12 +21,24 @@ internal sealed class ServicePublishHostedService(
             DisplayName = ServiceTemplateConfiguration.ReadRequiredString(configuration, "Service:DisplayName"),
             Description = ServiceTemplateConfiguration.ReadRequiredString(configuration, "Service:Description"),
             Version = version.ToString(),
-            SupportedEventTypes =
-                ServiceTemplateConfiguration.ReadRequiredUpStreamCapabilityList(configuration,
-                    "Service:SupportedEventTypes"),
-            RequiredDownStreamCapabilities =
-                ServiceTemplateConfiguration.ReadOptionalDownStreamCapabilityList(configuration,
-                    "Service:RequiredDownStreamCapabilities"),
+            ConsumedEvents =
+                ServiceTemplateConfiguration.ReadConsumedEventCapabilityList(configuration,
+                    "Service:ConsumedEvents"),
+            RequiredActions =
+                ServiceTemplateConfiguration.ReadActionCapabilityList(configuration,
+                    "Service:RequiredActions"),
+            PreferredActions =
+                ServiceTemplateConfiguration.ReadActionCapabilityList(configuration,
+                    "Service:PreferredActions"),
+            OfferedPolicies =
+                ServiceTemplateConfiguration.ReadGatewayPolicyTypeList(configuration,
+                    "Service:OfferedPolicies"),
+            RequiredBotPolicies =
+                ServiceTemplateConfiguration.ReadGatewayPolicyTypeList(configuration,
+                    "Service:RequiredBotPolicies"),
+            PreferredBotPolicies =
+                ServiceTemplateConfiguration.ReadGatewayPolicyTypeList(configuration,
+                    "Service:PreferredBotPolicies"),
             RouteHints = commandRegistry.ToRouteHints(),
             ServiceConfigMetadata = ServiceCommandMetadata.FromRegistry(commandRegistry)
         }, cancellationToken);

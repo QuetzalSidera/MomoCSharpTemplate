@@ -1,4 +1,5 @@
 using Shared.Contracts.Capabilities;
+using Shared.Contracts.Policies;
 
 internal static class ServiceTemplateConfiguration
 {
@@ -22,51 +23,56 @@ internal static class ServiceTemplateConfiguration
         return value.Trim();
     }
 
-    public static IReadOnlyList<ICoreUpStreamCapabilityConfig> ReadRequiredUpStreamCapabilityList(
+    public static IReadOnlyList<IEventCapabilityConfig> ReadConsumedEventCapabilityList(
         IConfiguration configuration,
         string key)
     {
-        return ReadRequiredCapabilitySpecs(configuration, key)
-            .Select(spec => CoreCapabilityConfigParser.ParseUpStream(spec.Domain, spec.Dimensions))
+        return ReadRequiredCapabilityIdentifiers(configuration, key)
+            .Select(CapabilityConfigs.Events.Event)
             .Distinct()
             .ToList();
     }
 
-    public static IReadOnlyList<ICoreDownStreamCapabilityConfig> ReadOptionalDownStreamCapabilityList(
+    public static IReadOnlyList<IActionCapabilityConfig> ReadActionCapabilityList(
         IConfiguration configuration,
         string key)
     {
-        return ReadOptionalCapabilitySpecs(configuration, key)
-            .Select(spec => CoreCapabilityConfigParser.ParseDownStream(spec.Domain, spec.Dimensions))
+        return ReadOptionalCapabilityIdentifiers(configuration, key)
+            .Select(CapabilityConfigs.Actions.Action)
             .Distinct()
             .ToList();
     }
 
-    private static IReadOnlyList<ConfiguredCapability> ReadRequiredCapabilitySpecs(IConfiguration configuration,
+    public static IReadOnlyList<GatewayPolicyType> ReadGatewayPolicyTypeList(
+        IConfiguration configuration,
         string key)
     {
-        var values = ReadOptionalCapabilitySpecs(configuration, key);
+        return ReadOptionalCapabilityIdentifiers(configuration, key)
+            .Select(GatewayPolicyRegistry.Parse)
+            .Distinct()
+            .ToList();
+    }
+
+    private static IReadOnlyList<string> ReadRequiredCapabilityIdentifiers(IConfiguration configuration,
+        string key)
+    {
+        var values = ReadOptionalCapabilityIdentifiers(configuration, key);
         if (values.Count == 0)
             throw new InvalidOperationException($"{key} is required.");
 
         return values;
     }
 
-    private static IReadOnlyList<ConfiguredCapability> ReadOptionalCapabilitySpecs(IConfiguration configuration,
+    private static IReadOnlyList<string> ReadOptionalCapabilityIdentifiers(IConfiguration configuration,
         string key)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        return configuration.GetSection(key).Get<ConfiguredCapability[]>()?
-            .Where(value => !string.IsNullOrWhiteSpace(value.Domain))
+        return configuration.GetSection(key).Get<string[]>()?
+            .Select(value => value.Trim())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
             .ToList() ?? [];
-    }
-
-    private sealed record ConfiguredCapability
-    {
-        public string Domain { get; init; } = string.Empty;
-
-        public Dictionary<string, string> Dimensions { get; init; } = [];
     }
 }
